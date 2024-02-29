@@ -13,7 +13,7 @@ function Appv2() {
 
     return (
         <div className="h-screen bg-sky-950 py-12">
-            {/* Testing commit */}
+            {/* Testing commit v2*/}
             {/* TODO: Replicate normal mode to look like dark mode colours */}
             <img src={logo} height={48} width={48} className='ml-auto mr-12'/>
             <center className="text-4xl text-green-500 -mt-12"> 
