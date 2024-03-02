@@ -19,6 +19,9 @@ function Appv2() {
             <center className="text-4xl text-green-500 -mt-12"> 
                 <b>ST Messaging App</b> 
             </center>
+            <a href='https://st-msg-app.auth.us-east-2.amazoncognito.com/logout?client_id=6lk6tvff1cof0k2juf8s4rk93r&logout_uri=https%3A%2F%2Fmaster.d3s8cuax6od5me.amplifyapp.com'>
+                <Button variant="contained" startIcon={<SendIcon />}>Sign Out</Button>
+            </a>
             <div className="flex items-center justify-center mt-8">
                 <div className="grid grid-rows-1 grid-cols-5">
                     <div className="h-[80vh] px-0 flex flex-col col-span-1 bg-white ml-auto rounded-r-none rounded-lg shadow overflow-y-scroll">
