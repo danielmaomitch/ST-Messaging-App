@@ -1,0 +1,24 @@
+{
+  "authSelections": "userPoolOnly",
+  "resourceName": "stmessagingapp",
+  "serviceType": "imported",
+  "region": "us-east-2",
+  "aliasAttributes": [
+    "preferred_username"
+  ],
+  "authProvidersUserPool": [],
+  "requiredAttributes": [
+    "given_name",
+    "email"
+  ],
+  "passwordPolicyMinLength": 7,
+  "passwordPolicyCharacters": [
+    "Requires Numbers",
+    "Requires Symbols"
+  ],
+  "mfaConfiguration": "OFF",
+  "autoVerifiedAttributes": [
+    "email"
+  ],
+  "mfaTypes": []
+}

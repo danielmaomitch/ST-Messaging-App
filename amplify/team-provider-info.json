@@ -1,0 +1,25 @@
+{
+  "staging": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-amplify5366ff2cfb624-staging-195107-authRole",
+      "UnauthRoleArn": "arn:aws:iam::599151821179:role/amplify-amplify5366ff2cfb624-staging-195107-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::599151821179:role/amplify-amplify5366ff2cfb624-staging-195107-authRole",
+      "Region": "us-east-2",
+      "DeploymentBucketName": "amplify-amplify5366ff2cfb624-staging-195107-deployment",
+      "UnauthRoleName": "amplify-amplify5366ff2cfb624-staging-195107-unauthRole",
+      "StackName": "amplify-amplify5366ff2cfb624-staging-195107",
+      "StackId": "arn:aws:cloudformation:us-east-2:599151821179:stack/amplify-amplify5366ff2cfb624-staging-195107/363723f0-d8ce-11ee-bae7-06524948b6d9",
+      "AmplifyAppId": "d3s8cuax6od5me"
+    },
+    "categories": {
+      "auth": {
+        "stmessagingapp": {
+          "nativeClientId": "u5bjt642ohj74nabkv4jp0ion",
+          "userPoolId": "us-east-2_Tcn5xW0Tf",
+          "userPoolName": "ST-Msg-User-Pool",
+          "webClientId": "u5bjt642ohj74nabkv4jp0ion"
+        }
+      }
+    }
+  }
+}
