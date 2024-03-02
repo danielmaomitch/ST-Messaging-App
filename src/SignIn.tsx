@@ -19,7 +19,7 @@ function SignIn() {
                 <b>ST Messaging App</b> 
             </center>
             <div className='mt-auto pb-4'>
-                <a href='https://st-msg-app.auth.us-east-2.amazoncognito.com/login?client_id=6lk6tvff1cof0k2juf8s4rk93r&response_type=code&scope=email+openid+phone&redirect_uri=https%3A%2F%2Fmaster.d3s8cuax6od5me.amplifyapp.com%2Fappv2'>
+                <a href='https://st-msg-app.auth.us-east-2.amazoncognito.com/login?client_id=u5bjt642ohj74nabkv4jp0ion&response_type=code&scope=email+openid+phone&redirect_uri=https%3A%2F%2Fmaster.d3s8cuax6od5me.amplifyapp.com%2Fappv2'>
                     <Button variant="contained" startIcon={<SendIcon />}>Sign In</Button>
                 </a>
             </div>

@@ -19,7 +19,8 @@ function Appv2() {
             <center className="text-4xl text-green-500 -mt-12"> 
                 <b>ST Messaging App</b> 
             </center>
-            <a href='https://st-msg-app.auth.us-east-2.amazoncognito.com/logout?client_id=6lk6tvff1cof0k2juf8s4rk93r&logout_uri=https%3A%2F%2Fmaster.d3s8cuax6od5me.amplifyapp.com'>
+            {/* TODO: Change sign out button icon */}
+            <a href='https://st-msg-app.auth.us-east-2.amazoncognito.com/logout?client_id=u5bjt642ohj74nabkv4jp0ion&logout_uri=https%3A%2F%2Fmaster.d3s8cuax6od5me.amplifyapp.com/'>
                 <Button variant="contained" startIcon={<SendIcon />}>Sign Out</Button>
             </a>
             <div className="flex items-center justify-center mt-8">
