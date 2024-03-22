@@ -6,12 +6,13 @@ import './App.css';
 import Button from '@mui/material/Button';
 import { Messages } from './Messages';
 import { Amplify } from 'aws-amplify';
-import awsExports from './aws-exports';
+// import awsExports from './aws-exports';
 import { Authenticator, withAuthenticator } from '@aws-amplify/ui-react';
 import { type AuthUser } from "aws-amplify/auth";
 import { type UseAuthenticator } from "@aws-amplify/ui-react-core";
 import awsConfig from './amplifyconfiguration.json'
 import '@aws-amplify/ui-react/styles.css';
+import { get } from 'aws-amplify/api';
 
 type AppProps = {
 
@@ -19,11 +20,52 @@ type AppProps = {
     user?: AuthUser;
 
 };
+
+interface IGroups {
+    "SK": string,
+    "GroupID": number
+}
+
 Amplify.configure(awsConfig)
 const Appv2:React.FC<AppProps>=({signOut, user})=> {
     Messages.sort((a, b) => a.date.localeCompare(b.date))
 
     const[inputText, setInputText] = useState('')
+    const [groups, setGroups] = useState<IGroups[]>([])
+    const [groupID, setGroupID] = useState('')
+
+    function callAPI(): React.MouseEventHandler<HTMLButtonElement> | void {
+        // instantiate a headers object
+        var myHeaders = new Headers();
+        // add content type header to object
+        myHeaders.append("Content-Type", "application/json");
+        // using built in JSON utility package turn object to string and store in a variable
+        //var raw = JSON.stringify({"GroupID":123});
+        // create a JSON object with parameters for API call and store in a variable
+        var requestOptions = {
+            method: 'GET',
+            headers: myHeaders,
+            // body: raw
+            // redirect: 'follow'
+        };
+        // make API call with parameters and use promises to get response
+        fetch(`https://3aw30oh845.execute-api.us-east-2.amazonaws.com/dev/?groupid=${groupID}`, requestOptions)
+        .then(response => response.text())
+        .then(result => {
+            //setGroups(JSON.parse(result).body)
+            let body: IGroups[] = JSON.parse(result).body
+            let grouping: IGroups[] = []
+            body.forEach(obj => {
+                const cur: IGroups = {
+                    SK: obj["SK"],
+                    GroupID: obj["GroupID"]
+                }
+                grouping.push(cur)
+            });
+            setGroups(grouping)
+        })
+        .catch(error => console.log('error', error));
+    }
 
     return (
         // {/* {({ signOut, user }:AppProps) => ( */}
@@ -64,10 +106,19 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
                         </div>
                         <div className=" h-[80vh] p-4 bg-zinc-700 flex items-center justify-center col-span-4 rounded-l-none rounded-lg shadow">
                             <span>{user?.username}</span>
+                            <ul>
+                                {
+                                    groups.map((v)=>
+                                        <li>{v.SK}</li>
+                                    )
+                                }
+                            </ul>
+                            <textarea onChange={(v) => setGroupID(v.target.value)} value={groupID} placeholder='Type a groupID' name="text" rows={4} wrap="soft" cols={90} className="rounded-lg min-h-16 max-h-16 mt-auto mr-3 overflow-y-scroll">
+                            </textarea>
                             <textarea onChange={(v) => setInputText(v.target.value)} value={inputText} placeholder='Send a Message...' name="text" rows={4} wrap="soft" cols={90} className="rounded-lg min-h-16 max-h-16 mt-auto mr-3 overflow-y-scroll">
                             </textarea>
                             <div className='mt-auto pb-4'>
-                                <Button variant="contained" startIcon={<SendIcon />}>Send</Button>
+                                <Button variant="contained" startIcon={<SendIcon />} onClick={callAPI}>Send</Button>
                             </div>
                         </div>
                     </div>

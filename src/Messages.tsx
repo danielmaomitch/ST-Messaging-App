@@ -83,3 +83,15 @@ export const Messages: IMessages[] = [
 ]
 
 // TODO: Convert dynamodb JSON response to IMessages type
+/*
+type MessageProps = {
+
+    groupid?: number;
+
+};
+const Messages:React.FC<MessageProps>=({groupid})=> {
+    
+*/
+
+// how to call message function:
+// <Messages groupid={groupidParam}>
