@@ -148,7 +148,7 @@ export async function callAPIPOST(groupid: number, uid: string | undefined, msg:
         body: raw
     };
     // make API call with parameters and use promises to get response
-    await fetch(`https://3aw30oh845.execute-api.us-east-2.amazonaws.com/dev/?reqType=POST_MSG&groupid=126&userid=twiggs342`, requestOptions)
+    await fetch(`https://3aw30oh845.execute-api.us-east-2.amazonaws.com/dev/?reqType=POST_MSG&groupid=${groupid}&userid=${uid}`, requestOptions)
     // .then(response => response.text())
     // .then(result => alert(JSON.parse(result).body))
     .catch(error => console.log('callAPIPOST Error', error));
