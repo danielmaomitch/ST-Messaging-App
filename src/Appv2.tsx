@@ -4,7 +4,6 @@ import { AccountIcon } from './Icons';
 import { SendIcon } from './Icons';
 import './App.css';
 import Button from '@mui/material/Button';
-import { Messages } from './Messages';
 import { Amplify } from 'aws-amplify';
 // import awsExports from './aws-exports';
 import { Authenticator, withAuthenticator } from '@aws-amplify/ui-react';
@@ -12,8 +11,8 @@ import { type AuthUser } from "aws-amplify/auth";
 import { type UseAuthenticator } from "@aws-amplify/ui-react-core";
 import awsConfig from './amplifyconfiguration.json'
 import '@aws-amplify/ui-react/styles.css';
-import { callAPIPreview, IPreviews } from './APICalls';
-import { IGroups } from './APICalls';
+import { callAPIPreview, callAPIMessages, IPreviews, IMessages, callAPIPOST } from './APICalls';
+import { inputAdornmentClasses } from '@mui/material';
 
 type AppProps = {
 
@@ -32,20 +31,43 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
     //Messages.sort((a, b) => a.date.localeCompare(b.date))
 
     const[inputText, setInputText] = useState('')
-    const[fetched, setFetched] = useState(false)
-    //const [groups, setGroups] = useState<IGroups[]>([])
+    const[prevFetched, setPrevFetched] = useState(false)
+    const[msgsFetched, setMsgsFetched] = useState(false)
     const [previews, setPreviews] = useState<IPreviews[]>([])
-    let temp: IPreviews[] = []
-    callAPIPreview()
+    const [messages, setMessages] = useState<IMessages[]>([])// make a function to set this
+    callAPIPreview(user?.username)
         .then(data => {
             console.log('fetchPreview', data)
-            if(!fetched) {
+            if(!prevFetched) {
                 setPreviews(data)
-                setFetched(true)
+                setPrevFetched(true)
             }
         })
+    if(prevFetched) {
+        callAPIMessages(previews[0]['GroupID'])
+            .then(data => {
+                console.log('fetchMessages', data)
+                if(!msgsFetched) {
+                    setMessages(data)
+                    setMsgsFetched(true)
+                }
+            })
+    }
+    
     console.log('previews', previews)
     const [groupID, setGroupID] = useState('')
+
+    function updateMessages(msg: string, uid: string | undefined, groupid: number): void {
+        var temp: IMessages[] = messages
+        temp.push({
+            "Sender": uid,
+            "Message": msg,
+            "Time": new Date().toISOString().substring(0, 10)
+        })
+        setMessages(temp)
+        setInputText('')
+        callAPIPOST(groupid, uid, msg)
+    }
 
     // function callAPI(): React.MouseEventHandler<HTMLButtonElement> | void {
     //     // instantiate a headers object
@@ -114,22 +136,22 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
                                     </div>
                                 </>
                             )}
-                        </div>
-                        <div className=" h-[80vh] p-4 bg-zinc-700 flex items-center justify-center col-span-4 rounded-l-none rounded-lg shadow">
-                            <span>{user?.username}</span>
-                            <ul>
+                        </div>  
+                        {/* justify-center items-center p-4*/}
+                        <div className="h-[80vh]  bg-zinc-700 flex col-span-4 rounded-l-none rounded-lg shadow">
+                            {/* <span>{user?.username}</span> */}
+                            {/* MAKE ANOTHER GRID TO DIVIDE UP THE RIGHT SIDE GREY PART MAYBE 5 TOTAL ROWS AND 4 ROW SPAN FOR MSGS*/}
+                            <ul className='mt-auto'>
                                 {
-                                    // previews.map((v)=>
-                                    //     <li>{v.LAST}</li>
-                                    // )
+                                    messages.map((v)=>
+                                        <li className={`${v.Sender === user?.username  && 'text-violet-600'}`}>{v.Message}</li>
+                                    )
                                 }
                             </ul>
-                            <textarea onChange={(v) => setGroupID(v.target.value)} value={groupID} placeholder='Type a groupID' name="text" rows={4} wrap="soft" cols={90} className="rounded-lg min-h-16 max-h-16 mt-auto mr-3 overflow-y-scroll">
-                            </textarea>
                             <textarea onChange={(v) => setInputText(v.target.value)} value={inputText} placeholder='Send a Message...' name="text" rows={4} wrap="soft" cols={90} className="rounded-lg min-h-16 max-h-16 mt-auto mr-3 overflow-y-scroll">
                             </textarea>
                             <div className='mt-auto pb-4'>
-                                <Button variant="contained" startIcon={<SendIcon />}>Send</Button>
+                                <Button onClick={(v) => updateMessages(inputText, user?.username, 126)} variant="contained" startIcon={<SendIcon />}>Send</Button>
                             </div>
                         </div>
                     </div>

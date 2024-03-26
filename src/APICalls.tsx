@@ -1,7 +1,7 @@
-export interface IGroups {
-    "SK": string,
-    "GroupID": number
-}
+// export interface IGroups {
+//     "SK": string,
+//     "GroupID": number
+// }
 
 export interface IPreviews {
     "GroupID": number,
@@ -10,7 +10,7 @@ export interface IPreviews {
 }
 
 export interface IMessages {
-    "Sender": string,
+    "Sender": string | undefined,
     "Message": string,
     "Time": string
 }
@@ -50,18 +50,16 @@ export interface IMessages {
 //     return groups;
 // }
 
-export async function callAPIPreview(): Promise<IPreviews[]> {
+export async function callAPIPreview(user: string | undefined): Promise<IPreviews[]> {
     var myHeaders = new Headers();
     var previews: IPreviews[] = [];
     myHeaders.append("Content-Type", "application/json");
     var requestOptions = {
         method: 'GET',
         headers: myHeaders,
-        // body: raw
-        // redirect: 'follow'
     };
     
-    await fetch(`https://3aw30oh845.execute-api.us-east-2.amazonaws.com/dev/?reqType=GET_PREV&userid=abc`, requestOptions)
+    await fetch(`https://3aw30oh845.execute-api.us-east-2.amazonaws.com/dev/?reqType=GET_PREV&userid=${user}`, requestOptions)
     .then(response => response.text())
     .then(result => {
         let body: IPreviews[] = JSON.parse(result).body
@@ -74,7 +72,7 @@ export async function callAPIPreview(): Promise<IPreviews[]> {
                 Time: obj["Time"]
             }
             stack.push(cur)
-            console.log('cur', cur)
+            //console.log('cur', cur)
         });
         //console.log('stack', stack)
         previews = stack;
@@ -84,36 +82,55 @@ export async function callAPIPreview(): Promise<IPreviews[]> {
     return previews;
 }
 
-/*export async function callAPIPreview(): Promise<IPreviews[]> {
+export async function callAPIMessages(groupid: number): Promise<IMessages[]> {
     var myHeaders = new Headers();
-    var previews: IPreviews[] = [];
+    var messages: IMessages[] = [];
     myHeaders.append("Content-Type", "application/json");
     var requestOptions = {
         method: 'GET',
         headers: myHeaders,
-        // body: raw
-        // redirect: 'follow'
     };
     
-    await fetch(`https://3aw30oh845.execute-api.us-east-2.amazonaws.com/dev/?userid=abc`, requestOptions)
+    await fetch(`https://3aw30oh845.execute-api.us-east-2.amazonaws.com/dev/?reqType=GET_MSGS&groupid=${groupid}`, requestOptions)
     .then(response => response.text())
     .then(result => {
-        let body: IPreviews[] = JSON.parse(result).body
+        let body: IMessages[] = JSON.parse(result).body
         //console.log('body', body)
-        let stack: IPreviews[] = []
+        let stack: IMessages[] = []
         body.forEach(obj => {
-            const cur: IPreviews = {
-                GroupID: obj["GroupID"],
-                LAST: obj["LAST"],
+            const cur: IMessages = {
+                Sender: obj["Sender"],
+                Message: obj["Message"],
                 Time: obj["Time"]
             }
             stack.push(cur)
-            console.log('cur', cur)
+            //console.log('cur', cur)
         });
         //console.log('stack', stack)
-        previews = stack;
+        messages = stack;
     })
     .catch(error => console.log('error', error));
     //console.log('previews post', previews)
-    return previews;
-} */
+    return messages;
+} 
+
+export async function callAPIPOST(groupid: number, uid: string | undefined, msg: string) {
+    // callAPI function that takes the base and exponent numbers as parameters
+    // instantiate a headers object
+    var myHeaders = new Headers();
+    // add content type header to object
+    myHeaders.append("Content-Type", "application/json");
+    // using built in JSON utility package turn object to string and store in a variable
+    var raw = JSON.stringify({"message":msg});
+    // create a JSON object with parameters for API call and store in a variable
+    var requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: raw
+    };
+    // make API call with parameters and use promises to get response
+    await fetch(`https://3aw30oh845.execute-api.us-east-2.amazonaws.com/dev/?reqType=POST_MSG&groupid=126&userid=twiggs342`, requestOptions)
+    // .then(response => response.text())
+    // .then(result => alert(JSON.parse(result).body))
+    .catch(error => console.log('error', error));
+}
