@@ -12,7 +12,6 @@ import { type UseAuthenticator } from "@aws-amplify/ui-react-core";
 import awsConfig from './amplifyconfiguration.json'
 import '@aws-amplify/ui-react/styles.css';
 import { callAPIPreview, callAPIMessages, IPreviews, IMessages, callAPIPOST } from './APICalls';
-import { inputAdornmentClasses } from '@mui/material';
 
 type AppProps = {
 
@@ -34,7 +33,7 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
     const[prevFetched, setPrevFetched] = useState(false)
     const[msgsFetched, setMsgsFetched] = useState(false)
     const [previews, setPreviews] = useState<IPreviews[]>([])
-    const [messages, setMessages] = useState<IMessages[]>([])// make a function to set this
+    const [messages, setMessages] = useState<IMessages[]>([])
     callAPIPreview(user?.username)
         .then(data => {
             console.log('fetchPreview', data)
@@ -125,7 +124,7 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
                                             <AccountIcon />
                                             {/* <span className='font-bold ml-2'>{v.name.length > 15 ? v.name.substring(0, 15).concat("...") : v.name}</span> */}
                                             {/* Above is to be used when length parsing is needed, i.e. group id is a user given name and not an ID  */}
-                                            <span className='font-bold ml-2'>{v.GroupID}</span>
+                                            <span className='font-bold ml-2'>{v.GroupID === 0 ? '' : v.GroupID}</span>
                                             <span className='font-light ml-5'>{v.Time}</span>
                                         </div>
                                         <div>

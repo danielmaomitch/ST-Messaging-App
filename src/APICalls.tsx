@@ -63,21 +63,31 @@ export async function callAPIPreview(user: string | undefined): Promise<IPreview
     .then(response => response.text())
     .then(result => {
         let body: IPreviews[] = JSON.parse(result).body
-        //console.log('body', body)
-        let stack: IPreviews[] = []
-        body.forEach(obj => {
-            const cur: IPreviews = {
-                GroupID: obj["GroupID"],
-                LAST: obj["LAST"],
-                Time: obj["Time"]
-            }
-            stack.push(cur)
-            //console.log('cur', cur)
-        });
-        //console.log('stack', stack)
-        previews = stack;
+        if (body.length === 0) {
+            console.log('isnide loop', body)
+            var emptyPrev: IPreviews[] = [{
+                "GroupID": 0,
+                "LAST": '',
+                "Time": ''
+            }]
+            previews = emptyPrev
+        }
+        else {
+            let stack: IPreviews[] = []
+            body.forEach(obj => {
+                const cur: IPreviews = {
+                    GroupID: obj["GroupID"],
+                    LAST: obj["LAST"],
+                    Time: obj["Time"]
+                }
+                stack.push(cur)
+                //console.log('cur', cur)
+            });
+            //console.log('stack', stack)
+            previews = stack;
+        }
     })
-    .catch(error => console.log('error', error));
+    .catch(error => console.log('callAPIPreview Error', error));
     //console.log('previews post', previews)
     return previews;
 }
@@ -95,21 +105,30 @@ export async function callAPIMessages(groupid: number): Promise<IMessages[]> {
     .then(response => response.text())
     .then(result => {
         let body: IMessages[] = JSON.parse(result).body
-        //console.log('body', body)
-        let stack: IMessages[] = []
-        body.forEach(obj => {
+        if (body.length === 0) {
             const cur: IMessages = {
-                Sender: obj["Sender"],
-                Message: obj["Message"],
-                Time: obj["Time"]
+                "Sender": '',
+                "Message": '',
+                "Time": ''
             }
-            stack.push(cur)
-            //console.log('cur', cur)
-        });
-        //console.log('stack', stack)
-        messages = stack;
+        }
+        else {
+            //console.log('body', body)
+            let stack: IMessages[] = []
+            body.forEach(obj => {
+                const cur: IMessages = {
+                    Sender: obj["Sender"],
+                    Message: obj["Message"],
+                    Time: obj["Time"]
+                }
+                stack.push(cur)
+                //console.log('cur', cur)
+            });
+            //console.log('stack', stack)
+            messages = stack;
+        }
     })
-    .catch(error => console.log('error', error));
+    .catch(error => console.log('callAPIMessages Error', error));
     //console.log('previews post', previews)
     return messages;
 } 
@@ -132,5 +151,5 @@ export async function callAPIPOST(groupid: number, uid: string | undefined, msg:
     await fetch(`https://3aw30oh845.execute-api.us-east-2.amazonaws.com/dev/?reqType=POST_MSG&groupid=126&userid=twiggs342`, requestOptions)
     // .then(response => response.text())
     // .then(result => alert(JSON.parse(result).body))
-    .catch(error => console.log('error', error));
+    .catch(error => console.log('callAPIPOST Error', error));
 }
