@@ -66,11 +66,12 @@ export async function callAPIMessages(groupid: number): Promise<IMessages[]> {
     .then(result => {
         let body: IMessages[] = JSON.parse(result).body
         if (body.length === 0) {
-            const cur: IMessages = {
+            const emptyMsg: IMessages[] = [{
                 "Sender": '',
                 "Message": '',
                 "Time": ''
-            }
+            }]
+            messages = emptyMsg
         }
         else {
             //console.log('body', body)
@@ -93,10 +94,10 @@ export async function callAPIMessages(groupid: number): Promise<IMessages[]> {
     return messages;
 } 
 
-export async function callAPIPOST(groupid: number, uid: string | undefined, msg: string) {
+export async function callAPIPOSTMsg(groupid: number, uid: string | undefined, msg: string) {
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
-    var raw = JSON.stringify({"message":msg});
+    var raw = JSON.stringify({ "message": msg });
     var requestOptions = {
         method: 'POST',
         headers: myHeaders,
@@ -105,5 +106,19 @@ export async function callAPIPOST(groupid: number, uid: string | undefined, msg:
     await fetch(`https://3aw30oh845.execute-api.us-east-2.amazonaws.com/dev/?reqType=POST_MSG&groupid=${groupid}&userid=${uid}`, requestOptions)
     // .then(response => response.text())
     // .then(result => alert(JSON.parse(result).body))
-    .catch(error => console.log('callAPIPOST Error', error));
+    .catch(error => console.log('callAPIPOSTMsg Error', error));
+}
+
+export async function callAPIPOSTGroup(groupName: string, uid: string[] | undefined, msg: string) {
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    var requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+    };
+    var groupid = Math.floor(Math.random() * (10000 + 1));
+    await fetch(`https://3aw30oh845.execute-api.us-east-2.amazonaws.com/dev/?reqType=POST_GROUP&groupid=${groupid}&userid=${uid}&groupName=${groupName}`, requestOptions)
+    // .then(response => response.text())
+    // .then(result => alert(JSON.parse(result).body))
+    .catch(error => console.log('callAPIPOSTGroup Error', error));
 }

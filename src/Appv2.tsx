@@ -11,7 +11,7 @@ import { type AuthUser } from "aws-amplify/auth";
 import { type UseAuthenticator } from "@aws-amplify/ui-react-core";
 import awsConfig from './amplifyconfiguration.json'
 import '@aws-amplify/ui-react/styles.css';
-import { callAPIPreview, callAPIMessages, IPreviews, IMessages, callAPIPOST } from './APICalls';
+import { callAPIPreview, callAPIMessages, IPreviews, IMessages, callAPIPOSTMsg, callAPIPOSTGroup } from './APICalls';
 
 const URL = 'wss://0d08av32n4.execute-api.us-east-2.amazonaws.com/production/'
 
@@ -31,8 +31,28 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
     const[msgsFetched, setMsgsFetched] = useState(false)
     const [previews, setPreviews] = useState<IPreviews[]>([])
     const [messages, setMessages] = useState<IMessages[]>([])
-
+    const [curGroup, setCurGroup] = useState<number>(0)
     const [isConnected, setIsConnected] = useState(false)
+
+    callAPIPreview(user?.username)
+        .then(data => {
+            console.log('fetchPreview', data)
+            if(!prevFetched) {
+                setPrevFetched(true)
+                setPreviews(data)
+            }
+        })
+    if(prevFetched) {
+        callAPIMessages(previews[0]['GroupID'])
+            .then(data => {
+                console.log('fetchMessages', data)
+                if(!msgsFetched) {
+                    setMsgsFetched(true)
+                    setMessages(data)
+                    setCurGroup(previews[0]['GroupID'])
+                }
+            })
+    }
 
     const onSocketOpen = useCallback(() => {
         setIsConnected(true)
@@ -76,27 +96,18 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
         console.log({ message })
     }, [])
 
-    callAPIPreview(user?.username)
-        .then(data => {
-            console.log('fetchPreview', data)
-            if(!prevFetched) {
-                setPrevFetched(true)
-                setPreviews(data)
-            }
-        })
-    if(prevFetched) {
-        callAPIMessages(previews[0]['GroupID'])
+    function changeMessageList(groupid: number) {
+        setCurGroup(groupid)
+        callAPIMessages(curGroup)
             .then(data => {
-                console.log('fetchMessages', data)
-                if(!msgsFetched) {
-                    setMsgsFetched(true)
-                    setMessages(data)
-                }
+                console.log('fetch Message List Change', data)
+                setMsgsFetched(true)
+                setMessages(data)
             })
     }
     
-    console.log('previews', previews)
-    const [groupID, setGroupID] = useState('')
+    // console.log('previews', previews)
+    // const [groupID, setGroupID] = useState('')
 
     function updateMessages(msg: string, uid: string | undefined, groupid: number): void {
         var temp: IMessages[] = messages
@@ -107,7 +118,7 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
         })
         setMessages(temp)
         setInputText('')
-        callAPIPOST(groupid, uid, msg)
+        callAPIPOSTMsg(curGroup, uid, msg)
     }
 
     return (
@@ -128,7 +139,7 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
                         <div className="h-[80vh] px-0 flex flex-col col-span-1 bg-white ml-auto rounded-r-none rounded-lg shadow overflow-y-scroll">
                             {previews.map((v, index) => 
                                 <> 
-                                    <div className={`pl-2 pt-2 flex flex-col border-b-2 border-dashed pb-2 hover:bg-gray-300 ${index === 0  && 'rounded-tl-lg'} ${index !== previews.length-1 && 'border-green-500'}`}>
+                                    <Button onClick={(w) => changeMessageList(v.GroupID)} className={`pl-2 pt-2 flex flex-col border-b-2 border-dashed pb-2 hover:bg-gray-300 ${index === 0  && 'rounded-tl-lg'} ${index !== previews.length-1 && 'border-green-500'}`}>
                                         <div className='flex flex-row'>
                                             <AccountIcon />
                                             {/* <span className='font-bold ml-2'>{v.name.length > 15 ? v.name.substring(0, 15).concat("...") : v.name}</span> */}
@@ -141,19 +152,19 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
                                             {/* Above is to be used when length parsing is needed, i.e. group id is a user given name and not an ID  */}
                                             <span className='text-gray-400'>{v.LAST.length > 40 ? v.LAST.substring(0, 40).concat("...") : v.LAST}</span>
                                         </div>
-                                    </div>
+                                    </Button>
                                 </>
                             )}
                         </div>  
                         {/* justify-center items-center p-4*/}
                         <div className="h-[80vh]  bg-zinc-700 flex col-span-4 rounded-l-none rounded-lg shadow">
-                            <Button onClick={onConnect} variant="contained" startIcon={<SendIcon />}>Connect</Button>
+                            {/* <Button onClick={onConnect} variant="contained" startIcon={<SendIcon />}>Connect</Button> */}
                             {/* <span>{user?.username}</span> */}
                             {/* MAKE ANOTHER GRID TO DIVIDE UP THE RIGHT SIDE GREY PART MAYBE 5 TOTAL ROWS AND 4 ROW SPAN FOR MSGS*/}
                             <ul className='mt-auto'>
                                 {
                                     messages.map((v)=>
-                                        <li className={`${v.Sender === user?.username  && 'text-violet-600'}`}>{v.Message}</li>
+                                        <li className={`${v.Sender === user?.username  && 'text-violet-600'}`}>{v.Time} - {v.Sender}: {v.Message}</li>
                                     )
                                 }
                             </ul>
@@ -161,7 +172,7 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
                             </textarea>
                             <div className='mt-auto pb-4'>
                                 {/* <Button onClick={onSocketOpen} variant="contained" startIcon={<SendIcon />}>Test Websocket</Button> */}
-                                <Button onClick={(v) => updateMessages(inputText, user?.username, 126)} variant="contained" startIcon={<SendIcon />}>Send</Button>
+                                <Button onClick={(v) => updateMessages(inputText, user?.username, curGroup)} variant="contained" startIcon={<SendIcon />}>Send</Button>
                             </div>
                         </div>
                     </div>
