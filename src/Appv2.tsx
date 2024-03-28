@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import logo from './logo192.png';
 import { AccountIcon } from './Icons';
 import { SendIcon } from './Icons';
@@ -13,33 +13,75 @@ import awsConfig from './amplifyconfiguration.json'
 import '@aws-amplify/ui-react/styles.css';
 import { callAPIPreview, callAPIMessages, IPreviews, IMessages, callAPIPOST } from './APICalls';
 
+const URL = 'wss://0d08av32n4.execute-api.us-east-2.amazonaws.com/production/'
+
 type AppProps = {
 
-    signOut?: UseAuthenticator["signOut"]; //() => void;
+    signOut?: UseAuthenticator["signOut"];
     user?: AuthUser;
 
 };
 
-// interface IGroups {
-//     "SK": string,
-//     "GroupID": number
-// }
-
 Amplify.configure(awsConfig)
 const Appv2:React.FC<AppProps>=({signOut, user})=> {
-    //Messages.sort((a, b) => a.date.localeCompare(b.date))
+    const socket = useRef<WebSocket | null>(null)
 
     const[inputText, setInputText] = useState('')
     const[prevFetched, setPrevFetched] = useState(false)
     const[msgsFetched, setMsgsFetched] = useState(false)
     const [previews, setPreviews] = useState<IPreviews[]>([])
     const [messages, setMessages] = useState<IMessages[]>([])
+
+    const [isConnected, setIsConnected] = useState(false)
+
+    const onSocketOpen = useCallback(() => {
+        setIsConnected(true)
+        var name = user?.username
+        //const name = prompt('Enter your name')
+        socket.current?.send(JSON.stringify({ action: 'setName', name }))
+        console.log('set the name')
+    }, [])
+
+    const onSocketClose = useCallback(() => {
+        setIsConnected(false)
+        console.log('closed the socket')
+    }, [])
+
+    const onSocketMessage = useCallback((data: {}) => {
+        console.log('messaging', { data })
+    }, [])
+
+    const onConnect = useCallback(() => {
+        if (socket.current?.readyState !== WebSocket.OPEN) {
+            socket.current = new WebSocket(URL)
+            socket.current.addEventListener('open', onSocketOpen)
+            socket.current.addEventListener('close', onSocketClose)
+            socket.current.addEventListener('message', (event) => {
+                onSocketMessage(event.data)
+                console.log('received a message')
+            })
+
+        }
+    }, [])
+
+    useEffect(() => {
+        return () => {
+            socket.current?.close();
+            console.log('closing the socket')
+        };
+    }, [])
+
+    const onSendPublicMessage = useCallback(() => {
+        const message = prompt('Enter public message');
+        console.log({ message })
+    }, [])
+
     callAPIPreview(user?.username)
         .then(data => {
             console.log('fetchPreview', data)
             if(!prevFetched) {
-                setPreviews(data)
                 setPrevFetched(true)
+                setPreviews(data)
             }
         })
     if(prevFetched) {
@@ -47,8 +89,8 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
             .then(data => {
                 console.log('fetchMessages', data)
                 if(!msgsFetched) {
-                    setMessages(data)
                     setMsgsFetched(true)
+                    setMessages(data)
                 }
             })
     }
@@ -67,39 +109,6 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
         setInputText('')
         callAPIPOST(groupid, uid, msg)
     }
-
-    // function callAPI(): React.MouseEventHandler<HTMLButtonElement> | void {
-    //     // instantiate a headers object
-    //     var myHeaders = new Headers();
-    //     // add content type header to object
-    //     myHeaders.append("Content-Type", "application/json");
-    //     // using built in JSON utility package turn object to string and store in a variable
-    //     //var raw = JSON.stringify({"GroupID":123});
-    //     // create a JSON object with parameters for API call and store in a variable
-    //     var requestOptions = {
-    //         method: 'GET',
-    //         headers: myHeaders,
-    //         // body: raw
-    //         // redirect: 'follow'
-    //     };
-    //     // make API call with parameters and use promises to get response
-    //     fetch(`https://3aw30oh845.execute-api.us-east-2.amazonaws.com/dev/?groupid=${groupID}`, requestOptions)
-    //     .then(response => response.text())
-    //     .then(result => {
-    //         //setGroups(JSON.parse(result).body)
-    //         let body: IGroups[] = JSON.parse(result).body
-    //         let grouping: IGroups[] = []
-    //         body.forEach(obj => {
-    //             const cur: IGroups = {
-    //                 SK: obj["SK"],
-    //                 GroupID: obj["GroupID"]
-    //             }
-    //             grouping.push(cur)
-    //         });
-    //         setGroups(grouping)
-    //     })
-    //     .catch(error => console.log('error', error));
-    // }
 
     return (
         <Authenticator>
@@ -138,6 +147,7 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
                         </div>  
                         {/* justify-center items-center p-4*/}
                         <div className="h-[80vh]  bg-zinc-700 flex col-span-4 rounded-l-none rounded-lg shadow">
+                            <Button onClick={onConnect} variant="contained" startIcon={<SendIcon />}>Connect</Button>
                             {/* <span>{user?.username}</span> */}
                             {/* MAKE ANOTHER GRID TO DIVIDE UP THE RIGHT SIDE GREY PART MAYBE 5 TOTAL ROWS AND 4 ROW SPAN FOR MSGS*/}
                             <ul className='mt-auto'>
@@ -150,6 +160,7 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
                             <textarea onChange={(v) => setInputText(v.target.value)} value={inputText} placeholder='Send a Message...' name="text" rows={4} wrap="soft" cols={90} className="rounded-lg min-h-16 max-h-16 mt-auto mr-3 overflow-y-scroll">
                             </textarea>
                             <div className='mt-auto pb-4'>
+                                {/* <Button onClick={onSocketOpen} variant="contained" startIcon={<SendIcon />}>Test Websocket</Button> */}
                                 <Button onClick={(v) => updateMessages(inputText, user?.username, 126)} variant="contained" startIcon={<SendIcon />}>Send</Button>
                             </div>
                         </div>
