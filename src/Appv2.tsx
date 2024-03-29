@@ -31,12 +31,13 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
     const[msgsFetched, setMsgsFetched] = useState(false)
     const [previews, setPreviews] = useState<IPreviews[]>([])
     const [messages, setMessages] = useState<IMessages[]>([])
+    const [liveMessages, setLiveMessages] = useState<IMessages[]>([{'Sender': '', 'Message': '', 'Time': ''}])
     const [curGroup, setCurGroup] = useState<number>(0)
     const [isConnected, setIsConnected] = useState(false)
 
     callAPIPreview(user?.username)
         .then(data => {
-            console.log('fetchPreview', data)
+            //console.log('fetchPreview', data)
             if(!prevFetched) {
                 setPrevFetched(true)
                 setPreviews(data)
@@ -45,7 +46,7 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
     if(prevFetched) {
         callAPIMessages(previews[0]['GroupID'])
             .then(data => {
-                console.log('fetchMessages', data)
+                //console.log('fetchMessages', data)
                 if(!msgsFetched) {
                     setMsgsFetched(true)
                     setMessages(data)
@@ -53,35 +54,55 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
                 }
             })
     }
-
-    const onSocketOpen = useCallback(() => {
+//
+    const onSocketOpen = useCallback((groupid: number) => {
         setIsConnected(true)
         var name = user?.username
         //const name = prompt('Enter your name')
-        socket.current?.send(JSON.stringify({ action: 'setName', name }))
-        console.log('set the name')
+        if (groupid !== 0) {
+            socket.current?.send(JSON.stringify({ action: 'setName', name, groupid }))
+            console.log('set the name')
+        }
     }, [])
-
+    // MAKE A "CHECK MESSAGES BUTTON TBH"
     const onSocketClose = useCallback(() => {
         setIsConnected(false)
         console.log('closed the socket')
     }, [])
 
-    const onSocketMessage = useCallback((data: {}) => {
-        console.log('messaging', { data })
+    const onSocketMessage = useCallback((data: any) => {
+        console.log('messaging', data )
+        let body: any = JSON.parse(data)
+        console.log('parsed data: body', body )
+        let temp: IMessages[] = liveMessages
+        let msgTime = new Date().toISOString().substring(0, 10)
+        temp.push({
+            "Sender": body.sender,
+            "Message": body.publicMessage,
+            "Time": `${body.groupid} | ${msgTime}`
+        })
+        setLiveMessages(temp)
     }, [])
 
-    const onConnect = useCallback(() => {
+    const onConnect = useCallback((groupid: number) => {
         if (socket.current?.readyState !== WebSocket.OPEN) {
             socket.current = new WebSocket(URL)
-            socket.current.addEventListener('open', onSocketOpen)
+            socket.current.addEventListener('open', (v) => {
+                onSocketOpen(groupid)
+                setLiveMessages([{'Sender': '', 'Message': '', 'Time': ''}])
+            })
             socket.current.addEventListener('close', onSocketClose)
             socket.current.addEventListener('message', (event) => {
                 onSocketMessage(event.data)
-                console.log('received a message')
+                //console.log('received a message')
             })
-
         }
+    }, [])
+
+    const onDisconnect = useCallback(() => {
+        socket.current?.close()
+        //setLiveMessages([{'Sender': '', 'Message': '', 'Time': ''}])
+        console.log('closing the socket')
     }, [])
 
     useEffect(() => {
@@ -91,34 +112,38 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
         };
     }, [])
 
-    const onSendPublicMessage = useCallback(() => {
-        const message = prompt('Enter public message');
-        console.log({ message })
+    const onSendPublicMessage = useCallback((name: string | undefined, groupid: number, message: string) => {
+        // const message = prompt('Enter public message');
+        // //console.log({ message })
+        if (socket.current?.readyState === WebSocket.OPEN) {
+            socket.current?.send(JSON.stringify({ action: 'sendPublic', name, groupid, message }))
+        }
     }, [])
 
     function changeMessageList(groupid: number) {
         setCurGroup(groupid)
         callAPIMessages(curGroup)
             .then(data => {
-                console.log('fetch Message List Change', data)
+                //console.log('fetch Message List Change', data)
                 setMsgsFetched(true)
                 setMessages(data)
             })
     }
     
-    // console.log('previews', previews)
+    // //console.log('previews', previews)
     // const [groupID, setGroupID] = useState('')
 
     function updateMessages(msg: string, uid: string | undefined, groupid: number): void {
-        var temp: IMessages[] = messages
+        var temp: IMessages[] = []
         temp.push({
             "Sender": uid,
             "Message": msg,
             "Time": new Date().toISOString().substring(0, 10)
         })
-        setMessages(temp)
+        //setMessages(temp)
         setInputText('')
-        callAPIPOSTMsg(curGroup, uid, msg)
+        callAPIPOSTMsg(groupid, uid, msg)
+        onSendPublicMessage(uid, groupid, msg)
     }
 
     return (
@@ -158,21 +183,34 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
                         </div>  
                         {/* justify-center items-center p-4*/}
                         <div className="h-[80vh]  bg-zinc-700 flex col-span-4 rounded-l-none rounded-lg shadow">
-                            {/* <Button onClick={onConnect} variant="contained" startIcon={<SendIcon />}>Connect</Button> */}
-                            {/* <span>{user?.username}</span> */}
-                            {/* MAKE ANOTHER GRID TO DIVIDE UP THE RIGHT SIDE GREY PART MAYBE 5 TOTAL ROWS AND 4 ROW SPAN FOR MSGS*/}
-                            <ul className='mt-auto'>
-                                {
-                                    messages.map((v)=>
-                                        <li className={`${v.Sender === user?.username  && 'text-violet-600'}`}>{v.Time} - {v.Sender}: {v.Message}</li>
-                                    )
-                                }
-                            </ul>
-                            <textarea onChange={(v) => setInputText(v.target.value)} value={inputText} placeholder='Send a Message...' name="text" rows={4} wrap="soft" cols={90} className="rounded-lg min-h-16 max-h-16 mt-auto mr-3 overflow-y-scroll">
-                            </textarea>
-                            <div className='mt-auto pb-4'>
-                                {/* <Button onClick={onSocketOpen} variant="contained" startIcon={<SendIcon />}>Test Websocket</Button> */}
-                                <Button onClick={(v) => updateMessages(inputText, user?.username, curGroup)} variant="contained" startIcon={<SendIcon />}>Send</Button>
+                                {/* <span>{user?.username}</span> */}
+                                {/* MAKE ANOTHER GRID TO DIVIDE UP THE RIGHT SIDE GREY PART MAYBE 5 TOTAL ROWS AND 4 ROW SPAN FOR MSGS*/}
+                            <div className="w-full grid grid-rows-6 grid-cols-1">
+                                <ul className='h-auto row-span-3 overflow-y-scroll'>
+                                    {
+                                        messages.map((v)=>
+                                            <li className={`${v.Sender === user?.username  && 'text-blue-400'}`}>{v.Time} - {v.Sender}: {v.Message}</li>
+                                        )
+                                    }
+                                </ul>
+                                <ul className='h-full mb-auto mt-5 row-span-2 overflow-y-scroll'>
+                                    {
+                                        liveMessages.map((v)=>
+                                            <li className={`${v.Sender === user?.username  && 'text-blue-400'}`}>{v.Time} - {v.Sender}: {v.Message}</li>
+                                        )
+                                    }
+                                </ul>
+                                <div className='justify-center flex row-span-1'>
+                                    <div className='mt-auto pb-4 mr-5'>
+                                        <Button onClick={(v) => isConnected ? onDisconnect() : onConnect(curGroup)} variant="contained" startIcon={<SendIcon />}>{isConnected ? 'Disconnect' : 'Connect'}</Button>
+                                    </div>
+                                    <textarea onChange={(v) => setInputText(v.target.value)} value={inputText} placeholder='Send a Message...' name="text" rows={4} wrap="soft" cols={90} className="rounded-lg min-h-16 max-h-16 mt-auto mr-3 overflow-y-scroll">
+                                    </textarea>
+                                    <div className='mt-auto pb-4'>
+                                        {/* <Button onClick={onSocketOpen} variant="contained" startIcon={<SendIcon />}>Test Websocket</Button> */}
+                                        <Button onClick={(v) => updateMessages(inputText, user?.username, curGroup)} variant="contained" startIcon={<SendIcon />}>Send</Button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

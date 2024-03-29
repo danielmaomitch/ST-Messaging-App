@@ -23,8 +23,32 @@ export async function callAPIPreview(user: string | undefined): Promise<IPreview
     .then(response => response.text())
     .then(result => {
         let body: IPreviews[] = JSON.parse(result).body
-        if (body.length === 0) {
-            console.log('isnide loop', body)
+        if (body !== undefined) {
+            if (body.length === 0) {
+                //console.log('isnide loop', body)
+                var emptyPrev: IPreviews[] = [{
+                    "GroupID": 0,
+                    "LAST": '',
+                    "Time": ''
+                }]
+                previews = emptyPrev
+            }
+            else {
+                let stack: IPreviews[] = []
+                body.forEach(obj => {
+                    const cur: IPreviews = {
+                        GroupID: obj["GroupID"],
+                        LAST: obj["LAST"],
+                        Time: obj["Time"]
+                    }
+                    stack.push(cur)
+                    ////console.log('cur', cur)
+                });
+                ////console.log('stack', stack)
+                previews = stack;
+            }
+        }
+        else {
             var emptyPrev: IPreviews[] = [{
                 "GroupID": 0,
                 "LAST": '',
@@ -32,23 +56,9 @@ export async function callAPIPreview(user: string | undefined): Promise<IPreview
             }]
             previews = emptyPrev
         }
-        else {
-            let stack: IPreviews[] = []
-            body.forEach(obj => {
-                const cur: IPreviews = {
-                    GroupID: obj["GroupID"],
-                    LAST: obj["LAST"],
-                    Time: obj["Time"]
-                }
-                stack.push(cur)
-                //console.log('cur', cur)
-            });
-            //console.log('stack', stack)
-            previews = stack;
-        }
     })
-    .catch(error => console.log('callAPIPreview Error', error));
-    //console.log('previews post', previews)
+    .catch(error => console.log('callAPIPreview Error', error, previews));
+    ////console.log('previews post', previews)
     return previews;
 }
 
@@ -65,7 +75,32 @@ export async function callAPIMessages(groupid: number): Promise<IMessages[]> {
     .then(response => response.text())
     .then(result => {
         let body: IMessages[] = JSON.parse(result).body
-        if (body.length === 0) {
+        if (body !== undefined) {
+            if (body.length === 0) {
+                const emptyMsg: IMessages[] = [{
+                    "Sender": '',
+                    "Message": '',
+                    "Time": ''
+                }]
+                messages = emptyMsg
+            }
+            else {
+                ////console.log('body', body)
+                let stack: IMessages[] = []
+                body.forEach(obj => {
+                    const cur: IMessages = {
+                        Sender: obj["Sender"],
+                        Message: obj["Message"],
+                        Time: obj["Time"]
+                    }
+                    stack.push(cur)
+                    ////console.log('cur', cur)
+                });
+                ////console.log('stack', stack)
+                messages = stack;
+            }
+        }
+        else {
             const emptyMsg: IMessages[] = [{
                 "Sender": '',
                 "Message": '',
@@ -73,24 +108,9 @@ export async function callAPIMessages(groupid: number): Promise<IMessages[]> {
             }]
             messages = emptyMsg
         }
-        else {
-            //console.log('body', body)
-            let stack: IMessages[] = []
-            body.forEach(obj => {
-                const cur: IMessages = {
-                    Sender: obj["Sender"],
-                    Message: obj["Message"],
-                    Time: obj["Time"]
-                }
-                stack.push(cur)
-                //console.log('cur', cur)
-            });
-            //console.log('stack', stack)
-            messages = stack;
-        }
     })
     .catch(error => console.log('callAPIMessages Error', error));
-    //console.log('previews post', previews)
+    ////console.log('previews post', previews)
     return messages;
 } 
 
