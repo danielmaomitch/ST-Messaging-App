@@ -1,5 +1,6 @@
 export interface IPreviews {
     "GroupID": number,
+    "GroupName": string,
     "LAST": string,
     "Time": string
 }
@@ -28,6 +29,7 @@ export async function callAPIPreview(user: string | undefined): Promise<IPreview
                 //console.log('isnide loop', body)
                 var emptyPrev: IPreviews[] = [{
                     "GroupID": 0,
+                    "GroupName": '',
                     "LAST": '',
                     "Time": ''
                 }]
@@ -38,6 +40,7 @@ export async function callAPIPreview(user: string | undefined): Promise<IPreview
                 body.forEach(obj => {
                     const cur: IPreviews = {
                         GroupID: obj["GroupID"],
+                        GroupName: obj["GroupName"],
                         LAST: obj["LAST"],
                         Time: obj["Time"]
                     }
@@ -50,7 +53,8 @@ export async function callAPIPreview(user: string | undefined): Promise<IPreview
         }
         else {
             var emptyPrev: IPreviews[] = [{
-                "GroupID": 0,
+                'GroupID': 0,
+                "GroupName": '',
                 "LAST": '',
                 "Time": ''
             }]
@@ -129,15 +133,17 @@ export async function callAPIPOSTMsg(groupid: number, uid: string | undefined, m
     .catch(error => console.log('callAPIPOSTMsg Error', error));
 }
 
-export async function callAPIPOSTGroup(groupName: string, uid: string[] | undefined, msg: string) {
+export async function callAPIPOSTGroup(groupName: string, users: string[] | undefined) {
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
+    var raw = JSON.stringify({ "users": users });
     var requestOptions = {
         method: 'POST',
         headers: myHeaders,
+        body: raw
     };
     var groupid = Math.floor(Math.random() * (10000 + 1));
-    await fetch(`https://3aw30oh845.execute-api.us-east-2.amazonaws.com/dev/?reqType=POST_GROUP&groupid=${groupid}&userid=${uid}&groupName=${groupName}`, requestOptions)
+    await fetch(`https://3aw30oh845.execute-api.us-east-2.amazonaws.com/dev/?reqType=POST_GROUP&groupid=${groupid}&groupName=${groupName}`, requestOptions)
     // .then(response => response.text())
     // .then(result => alert(JSON.parse(result).body))
     .catch(error => console.log('callAPIPOSTGroup Error', error));
