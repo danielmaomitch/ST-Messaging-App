@@ -54,6 +54,7 @@ const CreateGroup:React.FC<AppProps>=({signOut, user})=> {
                         <input onChange={(v) => setInputText(v.target.value)} value={inputText}></input>
                     </div>
                 </div>
+                <div className="font-bold">If the group does not appear on the left after creating, please refresh the page</div>
                 <Button onClick={(v) => addUser()} variant="contained" startIcon={<SendIcon />}>Add User</Button>
                 <div>
                     <h1 className="font-bold text-lg text-green-500">{users.length > 0 ? 'Users Added' : ''}</h1>

@@ -83,7 +83,7 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
             "Message": body.publicMessage,
             "Time": `${body.groupid} | ${msgTime}`
         })
-        setLiveMessages(temp)
+        setLiveMessages(temp.reverse())
     }, [])
 
     const onConnect = useCallback((groupid: number) => {
