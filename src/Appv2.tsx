@@ -35,6 +35,7 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
     const [messages, setMessages] = useState<IMessages[]>([])
     const [liveMessages, setLiveMessages] = useState<IMessages[]>([{'Sender': '', 'Message': '', 'Time': ''}])
     const [curGroup, setCurGroup] = useState<number>(0)
+    const [curGroupName, setCurGroupName] = useState<string>('')
     const [isConnected, setIsConnected] = useState(false)
 
     callAPIPreview(user?.username)
@@ -81,7 +82,7 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
         temp.push({
             "Sender": body.sender,
             "Message": body.publicMessage,
-            "Time": `${body.groupid} | ${msgTime}`
+            "Time": `${body.groupName} | ${msgTime}`
         })
         setLiveMessages(temp.reverse())
     }, [])
@@ -114,16 +115,17 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
         };
     }, [])
 
-    const onSendPublicMessage = useCallback((name: string | undefined, groupid: number, message: string) => {
+    const onSendPublicMessage = useCallback((name: string | undefined, groupid: number, groupName: string, message: string) => {
         // const message = prompt('Enter public message');
         // //console.log({ message })
         if (socket.current?.readyState === WebSocket.OPEN) {
-            socket.current?.send(JSON.stringify({ action: 'sendPublic', name, groupid, message }))
+            socket.current?.send(JSON.stringify({ action: 'sendPublic', name, groupid, groupName, message }))
         }
     }, [])
 
-    function changeMessageList(groupid: number) {
+    function changeMessageList(groupid: number, groupName: string) {
         setCurGroup(groupid)
+        setCurGroupName(groupName)
         callAPIMessages(curGroup)
             .then(data => {
                 //console.log('fetch Message List Change', data)
@@ -135,7 +137,7 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
     // //console.log('previews', previews)
     // const [groupID, setGroupID] = useState('')
 
-    function updateMessages(msg: string, uid: string | undefined, groupid: number): void {
+    function updateMessages(msg: string, uid: string | undefined, groupid: number, groupName: string): void {
         var temp: IMessages[] = []
         temp.push({
             "Sender": uid,
@@ -145,7 +147,7 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
         //setMessages(temp)
         setInputText('')
         callAPIPOSTMsg(groupid, uid, msg)
-        onSendPublicMessage(uid, groupid, msg)
+        onSendPublicMessage(uid, groupid, groupName, msg)
     }
 
     return (
@@ -173,7 +175,7 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
                         <div className="h-[80vh] px-0 flex flex-col col-span-1 bg-white ml-auto rounded-r-none rounded-lg shadow overflow-y-scroll">
                             {previews.map((v, index) => 
                                 <> 
-                                    <Button onClick={(w) => changeMessageList(v.GroupID)} className={`pl-2 pt-2 flex flex-col border-b-2 border-dashed pb-2 hover:bg-gray-300 ${index === 0  && 'rounded-tl-lg'} ${index !== previews.length-1 && 'border-green-500'}`}>
+                                    <Button onClick={(w) => changeMessageList(v.GroupID, v.GroupName)} className={`pl-2 pt-2 flex flex-col border-b-2 border-dashed pb-2 hover:bg-gray-300 ${index === 0  && 'rounded-tl-lg'} ${index !== previews.length-1 && 'border-green-500'}`}>
                                         <div className='flex flex-row'>
                                             <AccountIcon />
                                             {/* <span className='font-bold ml-2'>{v.name.length > 15 ? v.name.substring(0, 15).concat("...") : v.name}</span> */}
@@ -217,7 +219,7 @@ const Appv2:React.FC<AppProps>=({signOut, user})=> {
                                     </textarea>
                                     <div className='mt-auto pb-4'>
                                         {/* <Button onClick={onSocketOpen} variant="contained" startIcon={<SendIcon />}>Test Websocket</Button> */}
-                                        <Button onClick={(v) => updateMessages(inputText, user?.username, curGroup)} variant="contained" startIcon={<SendIcon />}>Send</Button>
+                                        <Button onClick={(v) => updateMessages(inputText, user?.username, curGroup, curGroupName)} variant="contained" startIcon={<SendIcon />}>Send</Button>
                                     </div>
                                 </div>
                             </div>
