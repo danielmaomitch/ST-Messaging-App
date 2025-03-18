@@ -7,14 +7,25 @@ Please note that the large majority of the backend code is comprised of AWS Lamb
 Languages and Frameworks: 
 
 Python
+
 Node.js
+
 Typescript
+
 React.js
+
 Tailwind
+
 AWS - Lambda
+
 AWS - API Gateway: WebSocket API
+
 AWS - API Gateway: REST API
+
 AWS - DynamoDB
+
 AWS - Cognito
+
 AWS - Amplify
+
 AWS - Identity and Access (IAM)
