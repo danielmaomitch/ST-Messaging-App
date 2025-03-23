@@ -4,6 +4,8 @@ This is a full-stack real-time application designed using several AWS modules, c
 
 Please note that the large majority of the backend code is comprised of AWS Lambda functions stored in an entirely different datasphere, however you can enjoy all of the front-end development housed in this github repository.
 
+Feel free to sign up and check it out! -> https://master.d3s8cuax6od5me.amplifyapp.com/
+
 Languages and Frameworks: 
 
 Python
